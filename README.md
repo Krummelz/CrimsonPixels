@@ -10,6 +10,7 @@ TODO:
 - Make proper pixel art
 - Score
 - Player death
+- HUD
 - Use a tilemap for the world
 - Different weapons
 - Different zombies
