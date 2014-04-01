@@ -1,4 +1,15 @@
 CrimsonPixels
 =============
 
-CrimsonLand spinoff game built with Phaser
+CrimsonLand spinoff game with zombies (Built with Phaser)
+
+
+TODO:
+=============
+- Make code structure like this - https://github.com/maciej-czekala/my_Phaser_tutorials
+- Make proper pixel art
+- Score
+- Player death
+- Use a tilemap for the world
+- Different weapons
+- Different zombies
