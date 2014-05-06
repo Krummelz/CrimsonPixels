@@ -10,16 +10,17 @@ module.exports = function (grunt) {
         express: {
           dev: {
             options: {
-              script: "server/server.js"
+              script: "deploy/server.js"
             }
           }
         },
         concat: {
             dist: {
-                src: [  "src/lib/**/*.js",
-                    "src/game/**/*.js"
+                src: [
+                        "src/lib/**/*.js",
+                        "src/game/**/*.js"
                      ],
-                dest: 'deploy/js/<%= pkg.name %>.js'
+                dest: 'deploy/public/js/<%= pkg.name %>.js'
             }
         },
         watch: {
@@ -28,7 +29,7 @@ module.exports = function (grunt) {
         },
         open: {
             dev: {
-                path: 'http://localhost:3001/index.html'
+                path: 'http://localhost:3002/'
             }
         }
     });
