@@ -3,16 +3,16 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-open');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-express-server');
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        connect: {
-            server: {
-                options: {
-                    port: 3001,
-                    base: './deploy'
-                }
+        express: {
+          dev: {
+            options: {
+              script: "server/server.js"
             }
+          }
         },
         concat: {
             dist: {
@@ -33,6 +33,6 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('default', ['concat', 'connect', 'open', 'watch']);
+    grunt.registerTask('default', ['concat', 'express', 'open', 'watch']);
 
 }

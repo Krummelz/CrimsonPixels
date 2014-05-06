@@ -10,10 +10,13 @@
   "author": "Jesse Freeman",
   "license": "MIT",
   "devDependencies": {
-      "grunt-open": "~0.2.3",
-      "grunt": "~0.4.2",
-      "grunt-contrib-concat": "~0.3.0",
-      "grunt-contrib-watch": "~0.5.3",
-      "grunt-contrib-connect": "~0.6.0"
+    "grunt-open": "~0.2.3",
+    "grunt": "~0.4.2",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-connect": "~0.6.0",
+    "grunt-express-server": "^0.4.17",
+    "express": "^4.1.1",
+    "socket.io": "^0.9.16"
   }
 }
