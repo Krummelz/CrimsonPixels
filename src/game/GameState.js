@@ -26,10 +26,7 @@ GameState.prototype.create = function() {
 
   //create the player
   this.player = new Player(game, game.camera.width / 2, game.camera.height / 2);
-  //game.physics.enable(this.player, Phaser.Physics.ARCADE);
-  //this.player.body.bounce.setTo(1);
-  this.game.add.existing(this.player); //TODO: move to Player class
-  game.camera.follow(this.player);
+
 
   //create enemies
   this.enemyGroup = game.add.group();
@@ -44,7 +41,8 @@ GameState.prototype.update = function() {
   //check collisions between bullets and enemies
   game.physics.arcade.overlap(this.player.bulletGroup, this.enemyGroup, this.bulletHitEnemy, null, this);
 
-  //game.physics.arcade.collide(this.enemyGroup, this.player);
+  //make player collide with zombies
+  game.physics.arcade.collide(this.player, this.enemyGroup);
 };
 GameState.prototype.bulletHitEnemy = function(bullet, enemy) {
   bullet.kill();

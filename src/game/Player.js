@@ -5,6 +5,11 @@ var Player = function(game, x, y) {
 
   game.physics.enable(this, Phaser.Physics.ARCADE);
 
+  this.body.bounce.setTo(1.5);
+  this.body.setSize(8, 8, 4, 4);
+  this.game.add.existing(this); //TODO: move to Player class
+  game.camera.follow(this);
+
   //some private vars
   this.fireRate = 100;
   this.nextFire = 0;
@@ -40,28 +45,28 @@ Player.prototype.update = function(){
 
   //movement
   if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
-    this.body.x -= 3;
+    this.body.velocity.x = -150;
     this.animations.play('walk', 4, true);
   }
   else if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
-    this.body.x += 3;
+    this.body.velocity.x = 150;
     this.animations.play('walk', 4, true);
   }
   if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
-    this.body.y -= 3;
+    this.body.velocity.y = -150;
     this.animations.play('walk', 4, true);
   }
   else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-    this.body.y += 3;
+    this.body.velocity.y = 150;
     this.animations.play('walk', 4, true);
   }
   //if no keys are down, stop the animation
   if(!game.input.keyboard.isDown(Phaser.Keyboard.A) && !game.input.keyboard.isDown(Phaser.Keyboard.D) && !game.input.keyboard.isDown(Phaser.Keyboard.W) && !game.input.keyboard.isDown(Phaser.Keyboard.S))
   {
     this.animations.stop(true);
+    this.body.velocity.x = 0;
+    this.body.velocity.y = 0;
   }
-
-
 };
 
 Player.prototype.shoot = function() {

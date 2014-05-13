@@ -76558,7 +76558,7 @@ Enemy.prototype.update = function() {
     if(game.physics.arcade.distanceBetween(this, this.player) < 16) {
       //don't play their walk animation
       this.animations.stop(true);
-      
+
     }
     else{
       //play their walk animation
@@ -76606,10 +76606,7 @@ GameState.prototype.create = function() {
 
   //create the player
   this.player = new Player(game, game.camera.width / 2, game.camera.height / 2);
-  //game.physics.enable(this.player, Phaser.Physics.ARCADE);
-  //this.player.body.bounce.setTo(1);
-  this.game.add.existing(this.player); //TODO: move to Player class
-  game.camera.follow(this.player);
+
 
   //create enemies
   this.enemyGroup = game.add.group();
@@ -76624,7 +76621,8 @@ GameState.prototype.update = function() {
   //check collisions between bullets and enemies
   game.physics.arcade.overlap(this.player.bulletGroup, this.enemyGroup, this.bulletHitEnemy, null, this);
 
-  //game.physics.arcade.collide(this.enemyGroup, this.player);
+  //make player collide with zombies
+  game.physics.arcade.collide(this.player, this.enemyGroup);
 };
 GameState.prototype.bulletHitEnemy = function(bullet, enemy) {
   bullet.kill();
@@ -76658,6 +76656,11 @@ var Player = function(game, x, y) {
   Phaser.Sprite.call(this, game, x, y, "playerSheet");
 
   game.physics.enable(this, Phaser.Physics.ARCADE);
+
+  this.body.bounce.setTo(1.5);
+  this.body.setSize(8, 8, 4, 4);
+  this.game.add.existing(this); //TODO: move to Player class
+  game.camera.follow(this);
 
   //some private vars
   this.fireRate = 100;
@@ -76694,25 +76697,27 @@ Player.prototype.update = function(){
 
   //movement
   if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
-    this.body.x -= 3;
+    this.body.velocity.x = -150;
     this.animations.play('walk', 4, true);
   }
   else if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
-    this.body.x += 3;
+    this.body.velocity.x = 150;
     this.animations.play('walk', 4, true);
   }
   if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
-    this.body.y -= 3;
+    this.body.velocity.y = -150;
     this.animations.play('walk', 4, true);
   }
   else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-    this.body.y += 3;
+    this.body.velocity.y = 150;
     this.animations.play('walk', 4, true);
   }
   //if no keys are down, stop the animation
   if(!game.input.keyboard.isDown(Phaser.Keyboard.A) && !game.input.keyboard.isDown(Phaser.Keyboard.D) && !game.input.keyboard.isDown(Phaser.Keyboard.W) && !game.input.keyboard.isDown(Phaser.Keyboard.S))
   {
     this.animations.stop(true);
+    this.body.velocity.x = 0;
+    this.body.velocity.y = 0;
   }
 
 
