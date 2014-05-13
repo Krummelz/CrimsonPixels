@@ -21,14 +21,21 @@ Enemy.prototype.update = function() {
   //only rotate the enemy towards the player if they are in range
 
   if(game.physics.arcade.distanceBetween(this, this.player) < 200) {
-    //play their walk animation
-    this.animations.play('walk', 2, true);
+    if(game.physics.arcade.distanceBetween(this, this.player) < 16) {
+      //don't play their walk animation
+      this.animations.stop(true);
+      
+    }
+    else{
+      //play their walk animation
+      this.animations.play('walk', 2, true);
 
-    //move towards the player
-    game.physics.arcade.moveToObject(this, this.player, 10);
+      //move towards the player
+      game.physics.arcade.moveToObject(this, this.player, 10);
 
-    //rotate towards the player
-    this.rotation = game.physics.arcade.angleBetween(this, this.player);//.angleToXY(player.body.x, player.body.y);
+      //rotate towards the player
+      this.rotation = game.physics.arcade.angleBetween(this, this.player);//.angleToXY(player.body.x, player.body.y);
+    }
   }
   else{
     //don't play their walk animation
