@@ -24,7 +24,6 @@ Enemy.prototype.update = function() {
     if(game.physics.arcade.distanceBetween(this, this.player) < 16) {
       //don't play their walk animation
       this.animations.stop(true);
-
     }
     else{
       //play their walk animation

@@ -76558,7 +76558,6 @@ Enemy.prototype.update = function() {
     if(game.physics.arcade.distanceBetween(this, this.player) < 16) {
       //don't play their walk animation
       this.animations.stop(true);
-
     }
     else{
       //play their walk animation
@@ -76579,6 +76578,9 @@ Enemy.prototype.update = function() {
   }
 };
 var GameState = function(game) {
+
+  this.Net = new Net('http://localhost:3002/');
+
   this.player = {};
   this.enemyGroup = {};
 };
@@ -76650,6 +76652,47 @@ GameState.prototype.spawnEnemy = function(){
   this.enemyGroup.add(enemy);
 };
 
+var Net = function(host){
+
+  this.events = [
+    'connect',
+    'connecting',
+    'disconnect',
+    'connect_failed',
+    'error',
+
+    'hello'
+  ];
+
+  this.socket = io.connect(host);
+
+  //hook up event handlers
+  for(var i = 0; i < this.events.length; i++){
+    this.socket.on(this.events[i], this[this.events[i]]);
+  }
+};
+
+Net.prototype.constructor = Net;
+
+Net.prototype.connect = function() {
+  console.log("socket connect");
+};
+Net.prototype.connecting = function() {
+  console.log("socket connecting");
+};
+Net.prototype.disconnect = function() {
+  console.log("socket disconnect");
+};
+Net.prototype.connect_failed = function() {
+  console.log("socket connect_failed");
+};
+Net.prototype.error = function() {
+  console.log("socket error");
+};
+
+Net.prototype.hello = function(message) {
+  console.log("socket hello:", message);
+};
 // Player constructor
 var Player = function(game, x, y) {
   //call the bass Sprite class
@@ -76666,6 +76709,9 @@ var Player = function(game, x, y) {
   this.fireRate = 100;
   this.nextFire = 0;
   this.bulletGroup = {};
+  this.speed = 150;
+  //using Pythagoras
+  this.diagonalSpeed = Math.sqrt((this.speed*this.speed) * 2) / 2;
 
   //set some properties
   this.animations.add('walk');
@@ -76681,6 +76727,8 @@ var Player = function(game, x, y) {
   this.bulletGroup.setAll('checkWorldBounds', true);
   this.bulletGroup.setAll('outOfBoundsKill', true);
 
+  this.keyboard = game.input.keyboard;
+
   //hook up an event handler for a click event
   game.input.onDown.add(this.shoot, this);
 };
@@ -76693,34 +76741,53 @@ Player.prototype.update = function(){
   //make the player point towards the mouse cursor
   this.rotation = game.physics.arcade.angleToPointer(this);
 
-  //TODO: do some Pythagoras later
+  //either left or right
+  if (this.keyboard.isDown(Phaser.Keyboard.A)) {
+    this.body.velocity.x = -this.speed;
+  }
+  if (this.keyboard.isDown(Phaser.Keyboard.D)) {
+    this.body.velocity.x = this.speed;
+  }
 
-  //movement
-  if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
-    this.body.velocity.x = -150;
-    this.animations.play('walk', 4, true);
+  //either up or down
+  if (this.keyboard.isDown(Phaser.Keyboard.W)) {
+    this.body.velocity.y = -this.speed;
   }
-  else if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
-    this.body.velocity.x = 150;
-    this.animations.play('walk', 4, true);
+  if (this.keyboard.isDown(Phaser.Keyboard.S)) {
+    this.body.velocity.y = this.speed;
   }
-  if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
-    this.body.velocity.y = -150;
-    this.animations.play('walk', 4, true);
+
+  //top left
+  if ((this.keyboard.isDown(Phaser.Keyboard.W)) && (this.keyboard.isDown(Phaser.Keyboard.A))) {
+    this.body.velocity.x = -this.diagonalSpeed;
+    this.body.velocity.y = -this.diagonalSpeed;
   }
-  else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-    this.body.velocity.y = 150;
-    this.animations.play('walk', 4, true);
+  //top right
+  if ((this.keyboard.isDown(Phaser.Keyboard.W)) && (this.keyboard.isDown(Phaser.Keyboard.D))) {
+    this.body.velocity.x = this.diagonalSpeed;
+    this.body.velocity.y = -this.diagonalSpeed;
   }
-  //if no keys are down, stop the animation
-  if(!game.input.keyboard.isDown(Phaser.Keyboard.A) && !game.input.keyboard.isDown(Phaser.Keyboard.D) && !game.input.keyboard.isDown(Phaser.Keyboard.W) && !game.input.keyboard.isDown(Phaser.Keyboard.S))
+  //bottom right
+  if ((this.keyboard.isDown(Phaser.Keyboard.D)) && (this.keyboard.isDown(Phaser.Keyboard.S))) {
+    this.body.velocity.x = this.diagonalSpeed;
+    this.body.velocity.y = this.diagonalSpeed;
+  }
+  //bottom left
+  if ((this.keyboard.isDown(Phaser.Keyboard.S)) && (this.keyboard.isDown(Phaser.Keyboard.A))) {
+    this.body.velocity.x = -this.diagonalSpeed;
+    this.body.velocity.y = this.diagonalSpeed;
+  }
+
+  //if no keys are down, stop the animation and movement
+  if(!this.keyboard.isDown(Phaser.Keyboard.A) && !this.keyboard.isDown(Phaser.Keyboard.D) && !this.keyboard.isDown(Phaser.Keyboard.W) && !this.keyboard.isDown(Phaser.Keyboard.S))
   {
     this.animations.stop(true);
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;
   }
-
-
+  else{
+    this.animations.play('walk', 4, true);
+  }
 };
 
 Player.prototype.shoot = function() {

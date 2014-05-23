@@ -1,4 +1,7 @@
 var GameState = function(game) {
+
+  this.Net = new Net('http://localhost:3002/');
+
   this.player = {};
   this.enemyGroup = {};
 };

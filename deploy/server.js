@@ -9,6 +9,13 @@ server.listen(3002);
 
 console.log("Server running on port 3002");
 
+
 io.sockets.on("connection", function (socket) {
-  //placeholder for socket.io stuffs
+  console.log('socket connected');
+  socket.emit('hello', 'testing, testing');
+
+
+  socket.on('disconnect', function () {
+    console.log('socket disconnect');
+  });
 });
