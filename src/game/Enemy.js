@@ -1,5 +1,5 @@
 // Enemy constructor
-var Enemy = function(game, x, y, player){
+var Enemy = function (game, x, y, player) {
   //call the bass Sprite class
   Phaser.Sprite.call(this, game, x, y, "zombieSheet");
 
@@ -9,7 +9,7 @@ var Enemy = function(game, x, y, player){
   //set some properties
   this.animations.add('walk');
   this.scale.setTo(2);
-  this.rotation = game.rnd.integerInRange(0, Math.PI*2);
+  this.rotation = game.rnd.integerInRange(0, Math.PI * 2);
   this.anchor.setTo(0.5, 0.5);
 };
 
@@ -17,15 +17,15 @@ var Enemy = function(game, x, y, player){
 Enemy.prototype = Object.create(Phaser.Sprite.prototype);
 Enemy.prototype.constructor = Enemy;
 
-Enemy.prototype.update = function() {
+Enemy.prototype.update = function () {
   //only rotate the enemy towards the player if they are in range
 
-  if(game.physics.arcade.distanceBetween(this, this.player) < 200) {
-    if(game.physics.arcade.distanceBetween(this, this.player) < 16) {
+  if (game.physics.arcade.distanceBetween(this, this.player) < 200) {
+    if (game.physics.arcade.distanceBetween(this, this.player) < 16) {
       //don't play their walk animation
       this.animations.stop(true);
     }
-    else{
+    else {
       //play their walk animation
       this.animations.play('walk', 2, true);
 
@@ -36,7 +36,7 @@ Enemy.prototype.update = function() {
       this.rotation = game.physics.arcade.angleBetween(this, this.player);//.angleToXY(player.body.x, player.body.y);
     }
   }
-  else{
+  else {
     //don't play their walk animation
     this.animations.stop(true);
     //zero their velocity

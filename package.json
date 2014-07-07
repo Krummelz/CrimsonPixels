@@ -16,7 +16,9 @@
     "grunt-contrib-watch": "~0.5.3",
     "grunt-contrib-connect": "~0.6.0",
     "grunt-express-server": "^0.4.17",
-    "express": "^4.1.1",
-    "socket.io": "^0.9.16"
+    "express": "^4.1.1"
+  },
+  "dependencies": {
+    "socket.io": "^1.0.3"
   }
 }

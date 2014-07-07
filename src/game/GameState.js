@@ -1,11 +1,12 @@
-var GameState = function(game) {
+var GameState = function (game) {
 
-  this.Net = new Net('http://localhost:3002/');
+  Net.init(this);
 
+  this.connectedPlayers = [];
   this.player = {};
   this.enemyGroup = {};
 };
-GameState.prototype.preload = function(){
+GameState.prototype.preload = function () {
   //load all assets
   game.load.image("bullet", "assets/bullet.png");
   game.load.image('grass', 'assets/grass.png');
@@ -15,7 +16,7 @@ GameState.prototype.preload = function(){
   //allows upscaling pixel art without blur
   game.stage.smoothed = false;
 };
-GameState.prototype.create = function() {
+GameState.prototype.create = function () {
   //background color for the game
   game.stage.backgroundColor = "#eeeeee";
 
@@ -27,41 +28,34 @@ GameState.prototype.create = function() {
   //set game world bounds
   game.world.setBounds(0, 0, 1400, 1400);
 
-  //create the player
-  this.player = new Player(game, game.camera.width / 2, game.camera.height / 2);
-
-
-  //create enemies
   this.enemyGroup = game.add.group();
   this.enemyGroup.enableBody = true;
   this.enemyGroup.physicsBodyType = Phaser.Physics.ARCADE;
-  for (var i = 0; i < 200; i++) {
-    //spawn a new enemy
-    this.spawnEnemy();
-  }
+
+  this.getNickname();
 };
-GameState.prototype.update = function() {
+GameState.prototype.update = function () {
   //check collisions between bullets and enemies
   game.physics.arcade.overlap(this.player.bulletGroup, this.enemyGroup, this.bulletHitEnemy, null, this);
 
   //make player collide with zombies
   game.physics.arcade.collide(this.player, this.enemyGroup);
 };
-GameState.prototype.bulletHitEnemy = function(bullet, enemy) {
+GameState.prototype.bulletHitEnemy = function (bullet, enemy) {
   bullet.kill();
   enemy.destroy();
 
   //spawn a new enemy
   this.spawnEnemy();
 };
-GameState.prototype.spawnEnemy = function(){
+GameState.prototype.spawnEnemy = function () {
   //get a position that is far enough away from the player
-  var tempPosition = {x:-200, y:-200}; //off screen far away
+  var tempPosition = {x: -200, y: -200}; //off screen far away
   //generate a new position
   tempPosition.x = game.world.randomX;
   tempPosition.y = game.world.randomY;
 
-  while (game.physics.arcade.distanceBetween(tempPosition, this.player) < 200){
+  while (game.physics.arcade.distanceBetween(tempPosition, this.player) < 200) {
     //generate new random position until it's far enough away
     tempPosition.x = game.world.randomX;
     tempPosition.y = game.world.randomY;
@@ -71,4 +65,26 @@ GameState.prototype.spawnEnemy = function(){
   var enemy = new Enemy(game, tempPosition.x, tempPosition.y, this.player);
   //game.physics.enable(enemy, Phaser.Physics.ARCADE);
   this.enemyGroup.add(enemy);
+};
+GameState.prototype.createEnemies = function(){
+  //create enemies
+  for (var i = 0; i < 200; i++) {
+    //spawn a new enemy
+    this.spawnEnemy();
+  }
+};
+GameState.prototype.getNickname = function() {
+  var nickname = prompt('Enter your nickname');
+  Net.addPlayer(nickname, game.world.randomX, game.world.randomY);
+};
+GameState.prototype.initPlayer = function(currentPlayer){
+  //create the player
+  this.player = new Player(game, currentPlayer);
+
+  //create enemies after the player
+  this.createEnemies();
+};
+GameState.prototype.updatePlayers = function(allPlayers){
+  //update the connected players
+  this.connectedPlayers = allPlayers;
 };

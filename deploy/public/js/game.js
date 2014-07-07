@@ -76533,7 +76533,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype = Object.create(p2.RevoluteConstr
 Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.RevoluteConstraint;
 
 // Enemy constructor
-var Enemy = function(game, x, y, player){
+var Enemy = function (game, x, y, player) {
   //call the bass Sprite class
   Phaser.Sprite.call(this, game, x, y, "zombieSheet");
 
@@ -76543,7 +76543,7 @@ var Enemy = function(game, x, y, player){
   //set some properties
   this.animations.add('walk');
   this.scale.setTo(2);
-  this.rotation = game.rnd.integerInRange(0, Math.PI*2);
+  this.rotation = game.rnd.integerInRange(0, Math.PI * 2);
   this.anchor.setTo(0.5, 0.5);
 };
 
@@ -76551,15 +76551,15 @@ var Enemy = function(game, x, y, player){
 Enemy.prototype = Object.create(Phaser.Sprite.prototype);
 Enemy.prototype.constructor = Enemy;
 
-Enemy.prototype.update = function() {
+Enemy.prototype.update = function () {
   //only rotate the enemy towards the player if they are in range
 
-  if(game.physics.arcade.distanceBetween(this, this.player) < 200) {
-    if(game.physics.arcade.distanceBetween(this, this.player) < 16) {
+  if (game.physics.arcade.distanceBetween(this, this.player) < 200) {
+    if (game.physics.arcade.distanceBetween(this, this.player) < 16) {
       //don't play their walk animation
       this.animations.stop(true);
     }
-    else{
+    else {
       //play their walk animation
       this.animations.play('walk', 2, true);
 
@@ -76570,21 +76570,22 @@ Enemy.prototype.update = function() {
       this.rotation = game.physics.arcade.angleBetween(this, this.player);//.angleToXY(player.body.x, player.body.y);
     }
   }
-  else{
+  else {
     //don't play their walk animation
     this.animations.stop(true);
     //zero their velocity
     this.body.velocity.x = this.body.velocity.y = 0;
   }
 };
-var GameState = function(game) {
+var GameState = function (game) {
 
-  this.Net = new Net('http://localhost:3002/');
+  Net.init(this);
 
+  this.connectedPlayers = [];
   this.player = {};
   this.enemyGroup = {};
 };
-GameState.prototype.preload = function(){
+GameState.prototype.preload = function () {
   //load all assets
   game.load.image("bullet", "assets/bullet.png");
   game.load.image('grass', 'assets/grass.png');
@@ -76594,7 +76595,7 @@ GameState.prototype.preload = function(){
   //allows upscaling pixel art without blur
   game.stage.smoothed = false;
 };
-GameState.prototype.create = function() {
+GameState.prototype.create = function () {
   //background color for the game
   game.stage.backgroundColor = "#eeeeee";
 
@@ -76606,41 +76607,34 @@ GameState.prototype.create = function() {
   //set game world bounds
   game.world.setBounds(0, 0, 1400, 1400);
 
-  //create the player
-  this.player = new Player(game, game.camera.width / 2, game.camera.height / 2);
-
-
-  //create enemies
   this.enemyGroup = game.add.group();
   this.enemyGroup.enableBody = true;
   this.enemyGroup.physicsBodyType = Phaser.Physics.ARCADE;
-  for (var i = 0; i < 200; i++) {
-    //spawn a new enemy
-    this.spawnEnemy();
-  }
+
+  this.getNickname();
 };
-GameState.prototype.update = function() {
+GameState.prototype.update = function () {
   //check collisions between bullets and enemies
   game.physics.arcade.overlap(this.player.bulletGroup, this.enemyGroup, this.bulletHitEnemy, null, this);
 
   //make player collide with zombies
   game.physics.arcade.collide(this.player, this.enemyGroup);
 };
-GameState.prototype.bulletHitEnemy = function(bullet, enemy) {
+GameState.prototype.bulletHitEnemy = function (bullet, enemy) {
   bullet.kill();
   enemy.destroy();
 
   //spawn a new enemy
   this.spawnEnemy();
 };
-GameState.prototype.spawnEnemy = function(){
+GameState.prototype.spawnEnemy = function () {
   //get a position that is far enough away from the player
-  var tempPosition = {x:-200, y:-200}; //off screen far away
+  var tempPosition = {x: -200, y: -200}; //off screen far away
   //generate a new position
   tempPosition.x = game.world.randomX;
   tempPosition.y = game.world.randomY;
 
-  while (game.physics.arcade.distanceBetween(tempPosition, this.player) < 200){
+  while (game.physics.arcade.distanceBetween(tempPosition, this.player) < 200) {
     //generate new random position until it's far enough away
     tempPosition.x = game.world.randomX;
     tempPosition.y = game.world.randomY;
@@ -76651,54 +76645,104 @@ GameState.prototype.spawnEnemy = function(){
   //game.physics.enable(enemy, Phaser.Physics.ARCADE);
   this.enemyGroup.add(enemy);
 };
+GameState.prototype.createEnemies = function(){
+  //create enemies
+  for (var i = 0; i < 200; i++) {
+    //spawn a new enemy
+    this.spawnEnemy();
+  }
+};
+GameState.prototype.getNickname = function() {
+  var nickname = prompt('Enter your nickname');
+  Net.addPlayer(nickname, game.world.randomX, game.world.randomY);
+};
+GameState.prototype.initPlayer = function(currentPlayer){
+  //create the player
+  this.player = new Player(game, currentPlayer);
 
-var Net = function(host){
+  //create enemies after the player
+  this.createEnemies();
+};
+GameState.prototype.updatePlayers = function(allPlayers){
+  //update the connected players
+  this.connectedPlayers = allPlayers;
+};
+(function (window) {
 
-  this.events = [
+  // privat vars
+  var events = [
     'connect',
     'connecting',
     'disconnect',
     'connect_failed',
     'error',
 
-    'hello'
+    'addPlayer',
+    'updatePlayers'
   ];
 
-  this.socket = io.connect(host);
+  var players = [];
+  var socket;
+  var _gameState;
 
-  //hook up event handlers
-  for(var i = 0; i < this.events.length; i++){
-    this.socket.on(this.events[i], this[this.events[i]]);
-  }
-};
+  var Net = {
 
-Net.prototype.constructor = Net;
+    connect: function() {
+      console.log("socket connect");
+    },
+    connecting: function() {
+      console.log("socket connecting");
+    },
+    disconnect: function() {
+      console.log("socket disconnect");
+    },
+    connect_failed: function() {
+      console.log("socket connect_failed");
+    },
+    error: function() {
+      console.log("socket error");
+    },
 
-Net.prototype.connect = function() {
-  console.log("socket connect");
-};
-Net.prototype.connecting = function() {
-  console.log("socket connecting");
-};
-Net.prototype.disconnect = function() {
-  console.log("socket disconnect");
-};
-Net.prototype.connect_failed = function() {
-  console.log("socket connect_failed");
-};
-Net.prototype.error = function() {
-  console.log("socket error");
-};
 
-Net.prototype.hello = function(message) {
-  console.log("socket hello:", message);
-};
+
+    addPlayer: function(nickname, x, y) {
+      console.log("socket addPlayer");
+      socket.emit('addPlayer', nickname, x, y);
+    },
+
+    updatePlayers: function(allPlayers, currentPlayer){
+      console.log("socket updatePlayers");
+      _gameState.initPlayer(currentPlayer);
+      _gameState.updatePlayers(allPlayers);
+    },
+
+
+    init: function(gameState) {
+      _gameState = gameState;
+      //create and connect socket.io
+      socket = io();
+
+      //hook up event handlers
+      for (var i = 0; i < events.length; i++) {
+        socket.on(events[i], this[events[i]]);
+      }
+    }
+
+  };
+
+  window.Net = Net;
+
+})(window);
 // Player constructor
-var Player = function(game, x, y) {
+var Player = function (game, currentPlayer) {
+  console.log(currentPlayer);
   //call the bass Sprite class
-  Phaser.Sprite.call(this, game, x, y, "playerSheet");
+  Phaser.Sprite.call(this, game, currentPlayer.x, currentPlayer.y, "playerSheet");
 
   game.physics.enable(this, Phaser.Physics.ARCADE);
+
+  this.id = currentPlayer.id;
+  this.nickname = currentPlayer.nickname;
 
   this.body.bounce.setTo(1.5);
   this.body.setSize(8, 8, 4, 4);
@@ -76711,7 +76755,7 @@ var Player = function(game, x, y) {
   this.bulletGroup = {};
   this.speed = 150;
   //using Pythagoras
-  this.diagonalSpeed = Math.sqrt((this.speed*this.speed) * 2) / 2;
+  this.diagonalSpeed = Math.sqrt((this.speed * this.speed) * 2) / 2;
 
   //set some properties
   this.animations.add('walk');
@@ -76737,24 +76781,29 @@ var Player = function(game, x, y) {
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
-Player.prototype.update = function(){
+Player.prototype.update = function () {
   //make the player point towards the mouse cursor
   this.rotation = game.physics.arcade.angleToPointer(this);
 
-  //either left or right
+  //left
   if (this.keyboard.isDown(Phaser.Keyboard.A)) {
     this.body.velocity.x = -this.speed;
+    this.body.velocity.y = 0;
   }
+  //right
   if (this.keyboard.isDown(Phaser.Keyboard.D)) {
     this.body.velocity.x = this.speed;
+    this.body.velocity.y = 0;
   }
-
-  //either up or down
+  //up
   if (this.keyboard.isDown(Phaser.Keyboard.W)) {
     this.body.velocity.y = -this.speed;
+    this.body.velocity.x = 0;
   }
+  //down
   if (this.keyboard.isDown(Phaser.Keyboard.S)) {
     this.body.velocity.y = this.speed;
+    this.body.velocity.x = 0;
   }
 
   //top left
@@ -76779,20 +76828,19 @@ Player.prototype.update = function(){
   }
 
   //if no keys are down, stop the animation and movement
-  if(!this.keyboard.isDown(Phaser.Keyboard.A) && !this.keyboard.isDown(Phaser.Keyboard.D) && !this.keyboard.isDown(Phaser.Keyboard.W) && !this.keyboard.isDown(Phaser.Keyboard.S))
-  {
+  if (!this.keyboard.isDown(Phaser.Keyboard.A) && !this.keyboard.isDown(Phaser.Keyboard.D) && !this.keyboard.isDown(Phaser.Keyboard.W) && !this.keyboard.isDown(Phaser.Keyboard.S)) {
     this.animations.stop(true);
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;
   }
-  else{
+  else {
     this.animations.play('walk', 4, true);
   }
 };
 
-Player.prototype.shoot = function() {
+Player.prototype.shoot = function () {
   //make the player shoot
-  if(game.time.now > this.nextFire && this.bulletGroup.countDead() > 0){
+  if (game.time.now > this.nextFire && this.bulletGroup.countDead() > 0) {
     this.nextFire = game.time.now + this.fireRate;
     var bullet = this.bulletGroup.getFirstDead();
     bullet.reset(this.x, this.y);

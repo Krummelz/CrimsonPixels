@@ -10,7 +10,7 @@ module.exports = function (grunt) {
         express: {
           dev: {
             options: {
-              script: "deploy/server.js"
+              script: "deploy/server/server.js"
             }
           }
         },
@@ -19,7 +19,7 @@ module.exports = function (grunt) {
                 src: [
                         "src/lib/**/*.js",
                         "src/game/**/*.js"
-                     ],
+                ],
                 dest: 'deploy/public/js/<%= pkg.name %>.js'
             }
         },

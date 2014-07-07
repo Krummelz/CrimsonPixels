@@ -1,9 +1,13 @@
 // Player constructor
-var Player = function(game, x, y) {
+var Player = function (game, currentPlayer) {
+  console.log(currentPlayer);
   //call the bass Sprite class
-  Phaser.Sprite.call(this, game, x, y, "playerSheet");
+  Phaser.Sprite.call(this, game, currentPlayer.x, currentPlayer.y, "playerSheet");
 
   game.physics.enable(this, Phaser.Physics.ARCADE);
+
+  this.id = currentPlayer.id;
+  this.nickname = currentPlayer.nickname;
 
   this.body.bounce.setTo(1.5);
   this.body.setSize(8, 8, 4, 4);
@@ -16,7 +20,7 @@ var Player = function(game, x, y) {
   this.bulletGroup = {};
   this.speed = 150;
   //using Pythagoras
-  this.diagonalSpeed = Math.sqrt((this.speed*this.speed) * 2) / 2;
+  this.diagonalSpeed = Math.sqrt((this.speed * this.speed) * 2) / 2;
 
   //set some properties
   this.animations.add('walk');
@@ -42,24 +46,29 @@ var Player = function(game, x, y) {
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
-Player.prototype.update = function(){
+Player.prototype.update = function () {
   //make the player point towards the mouse cursor
   this.rotation = game.physics.arcade.angleToPointer(this);
 
-  //either left or right
+  //left
   if (this.keyboard.isDown(Phaser.Keyboard.A)) {
     this.body.velocity.x = -this.speed;
+    this.body.velocity.y = 0;
   }
+  //right
   if (this.keyboard.isDown(Phaser.Keyboard.D)) {
     this.body.velocity.x = this.speed;
+    this.body.velocity.y = 0;
   }
-
-  //either up or down
+  //up
   if (this.keyboard.isDown(Phaser.Keyboard.W)) {
     this.body.velocity.y = -this.speed;
+    this.body.velocity.x = 0;
   }
+  //down
   if (this.keyboard.isDown(Phaser.Keyboard.S)) {
     this.body.velocity.y = this.speed;
+    this.body.velocity.x = 0;
   }
 
   //top left
@@ -84,20 +93,19 @@ Player.prototype.update = function(){
   }
 
   //if no keys are down, stop the animation and movement
-  if(!this.keyboard.isDown(Phaser.Keyboard.A) && !this.keyboard.isDown(Phaser.Keyboard.D) && !this.keyboard.isDown(Phaser.Keyboard.W) && !this.keyboard.isDown(Phaser.Keyboard.S))
-  {
+  if (!this.keyboard.isDown(Phaser.Keyboard.A) && !this.keyboard.isDown(Phaser.Keyboard.D) && !this.keyboard.isDown(Phaser.Keyboard.W) && !this.keyboard.isDown(Phaser.Keyboard.S)) {
     this.animations.stop(true);
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;
   }
-  else{
+  else {
     this.animations.play('walk', 4, true);
   }
 };
 
-Player.prototype.shoot = function() {
+Player.prototype.shoot = function () {
   //make the player shoot
-  if(game.time.now > this.nextFire && this.bulletGroup.countDead() > 0){
+  if (game.time.now > this.nextFire && this.bulletGroup.countDead() > 0) {
     this.nextFire = game.time.now + this.fireRate;
     var bullet = this.bulletGroup.getFirstDead();
     bullet.reset(this.x, this.y);
