@@ -1,0 +1,16 @@
+{
+  "name": "crimson",
+  "version": "0.0.1",
+  "main": "app://crimson/index.html",
+  "single-instance": false,
+  "window": {
+    "title": "crimson",
+    "toolbar": true,
+    "frame": true,
+    "width": 640,
+    "height": 480,
+    "position": "center",
+    "min_width": 640,
+    "min_height": 480
+  }
+}
