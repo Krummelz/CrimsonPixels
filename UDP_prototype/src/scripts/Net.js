@@ -5,7 +5,14 @@ var Net = (function(){
   function init(game){
 
     //private
-    function getState(){
+    var msgTypeEnums = {
+      UpdatePlayer: 'UpdatePlayer',
+      SpawnEnemy: 'SpawnEnemy',
+      KillEnemy: 'KillEnemy',
+      PlayerShoot: 'PlayerShoot'
+    };
+
+    function getGameState(){
       return game.state.getCurrentState();
     }
 
@@ -30,10 +37,11 @@ var Net = (function(){
 
     //to handle receiving messages from the network
     s.on('message',function(msg, rinfo){
-      //console.log("server got: '" + msg + "' from " + rinfo.address + ":" + rinfo.port);
 
-      //get the network data, and pass it onto the game to update player positions
-      getState().updateFromNetwork(JSON.parse(msg));
+      var msgObj = JSON.parse(msg);
+
+      //get the network data, and pass it onto the game to update what it needs to
+      getGameState()[msgTypeEnums[msgObj.msgType]](msgObj);
 
     });
 
@@ -59,6 +67,7 @@ var Net = (function(){
 
     //public
     return {
+      msgType: msgTypeEnums,
       send: sendMessage
     };
   }

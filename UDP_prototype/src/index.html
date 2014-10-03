@@ -3,6 +3,9 @@
 <head>
     <title>crimson</title>
     <style type="text/css">
+        *{
+            cursor:none;
+        }
         html, body{
             margin:0;
             padding:0;
@@ -11,11 +14,19 @@
     <script type="text/javascript" src="scripts/lib/phaser.js"></script>
     <script type="text/javascript" src="scripts/Net.js"></script>
     <script type="text/javascript" src="scripts/Player.js"></script>
+    <script type="text/javascript" src="scripts/Enemy.js"></script>
     <script type="text/javascript" src="scripts/GameState.js"></script>
     <script type="text/javascript" src="scripts/game.js"></script>
+	<script>
+        var gulp = require('gulp');
+        gulp.task('reload', function () {
+            if (location) location.reload();
+        });
+        gulp.watch('./scripts/**/*', ['reload']);
+	</script>
 </head>
 <body>
-    <div style="position:fixed; top:5px; left:5px; background-color:#000000; padding:5px;">
+    <div style="position:fixed; top:5px; left:5px; background-color:#000000; padding:5px; visibility: hidden;">
         <select id="ddlEncoding">
             <option>ascii</option>
             <option>utf8</option>

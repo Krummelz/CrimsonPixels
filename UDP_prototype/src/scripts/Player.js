@@ -1,6 +1,6 @@
 // Player constructor
 var Player = function (game, settings) {
-  console.log(settings);
+
   //call the bass Sprite class
   Phaser.Sprite.call(this, game, settings.x, settings.y, "playerSheet");
 
@@ -43,7 +43,7 @@ var Player = function (game, settings) {
     game.camera.follow(this);
     this.keyboard = game.input.keyboard;
     //hook up an event handler for a click event
-    game.input.onDown.add(this.shoot, this);
+    game.input.onDown.add(this.PlayerShoot, this);
   }
 };
 
@@ -56,7 +56,7 @@ Player.prototype.update = function () {
   if(this.current === true) {
       //TODO: sync over the network
       //  //make the player point towards the mouse cursor
-      this.rotation = game.physics.arcade.angleToPointer(this);
+      this.rotation = game.physics.arcade.angleToXY(this, game.input.activePointer.x, game.input.activePointer.y);
 
       //left
       if (this.keyboard.isDown(Phaser.Keyboard.A)) {
@@ -117,42 +117,48 @@ Player.prototype.update = function () {
         x:this.x,
         y:this.y,
         rotation: this.rotation,
-        current: this.current
+        current: this.current,
+        msgType: _net.msgType.UpdatePlayer
       };
-      if(this.shotFired){
-       obj.shotFired = this.shotFired;
-      }
-
-      console.log("send: " + JSON.stringify(obj));
-      _net.send (obj, ddlEncoding.value);
-
-      this.shotFired = undefined;
+      _net.send(obj, ddlEncoding.value);
     }
 
   }
 };
 
-Player.prototype.shoot = function () {
+Player.prototype.PlayerShoot = function (packetData) {
   //make the player shoot
   if (game.time.now > this.nextFire && this.bulletGroup.countDead() > 0) {
     this.nextFire = game.time.now + this.fireRate;
     var bullet = this.bulletGroup.getFirstDead();
     bullet.reset(this.x, this.y);
-    //this object will also be sent over the network
-    this.shotFired = {
-      x: game.input.activePointer.x,
-      y: game.input.activePointer.y
-    };
-    game.physics.arcade.moveToXY(bullet, this.shotFired.x, this.shotFired.y, 300);
+
+    if(packetData) {
+      //spawn a bullet that was fired by someone else
+      game.physics.arcade.moveToXY(bullet, packetData.x, packetData.y, 300);
+    }
+    else {
+      //sync shoots over the network
+      var targetX = game.input.activePointer.x,
+          targetY = game.input.activePointer.y;
+      var obj = {
+        x:targetX,
+        y:targetX,
+        msgType:_net.msgType.PlayerShoot
+      };
+      _net.send(obj, ddlEncoding.value);
+
+      game.physics.arcade.moveToXY(bullet, targetX, targetY, 300);
+    }
   }
 };
 
-Player.prototype.netShoot = function(x, y){
-  if (game.time.now > this.nextFire && this.bulletGroup.countDead() > 0) {
-    this.nextFire = game.time.now + this.fireRate;
-    var bullet = this.bulletGroup.getFirstDead();
-    bullet.reset(this.x, this.y);
-    game.physics.arcade.moveToXY(bullet, x, y, 300);
-  }
-};
+//Player.prototype.net_Shoot = function(x, y){
+//  if (game.time.now > this.nextFire && this.bulletGroup.countDead() > 0) {
+//    this.nextFire = game.time.now + this.fireRate;
+//    var bullet = this.bulletGroup.getFirstDead();
+//    bullet.reset(this.x, this.y);
+//    game.physics.arcade.moveToXY(bullet, x, y, 300);
+//  }
+//};
 
