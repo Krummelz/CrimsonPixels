@@ -9,9 +9,7 @@
     "frame": true,
     "width": 640,
     "height": 480,
-    "position": "center",
-    "min_width": 640,
-    "min_height": 480
+    "position": "center"
   },
   "dependencies": {
     "gulp": "^3.8.8"

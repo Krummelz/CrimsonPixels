@@ -3,6 +3,7 @@ var GameState = function (game) {
   this.player = {};
   this.enemyGroup = {};
   this.crosshair;
+  this.damageOverlay;
 };
 
 GameState.prototype = {
@@ -22,10 +23,11 @@ GameState.prototype = {
     this.game.stage.backgroundColor = '#000000';
 
     //grass
-    game.add.tileSprite(0, 0, 640, 480, 'grass');
-
+    game.add.tileSprite(0, 0, w, w, 'grass');
+;
     //set game world bounds
-    game.world.setBounds(0, 0, 640, 480);
+    //TODO: find issue with world being larger than screen size, affecting cursor position
+    game.world.setBounds(0, 0, w, h);
 
     this.crosshair = game.add.image(game.input.activePointer.x, game.input.activePointer.y, 'crosshair');
     this.crosshair.anchor.setTo(0.5, 0.5);
@@ -39,19 +41,16 @@ GameState.prototype = {
     //add this player
     var temp = Date.now();
     this.player = new Player(game, {
-      id:temp,
-      nickname:'PLayer_' + temp,
+      id: temp,
+      nickname: 'PLayer_' + temp,
       x: game.world.randomX,
       y: game.world.randomY,
       current:true
     });
     this.AddPlayer(this.player);
 
-    //create enemies
-    for (var i = 0; i < 1; i++) {
-      //spawn a new enemy
-      this.SpawnEnemy();
-    }
+    //spawn a new enemy every two seconds
+    game.time.events.repeat(Phaser.Timer.SECOND * 2, 20, this.SpawnEnemy, this);
   },
   AddPlayer: function(newPlayer){
     //add to allPLayers
@@ -78,8 +77,23 @@ GameState.prototype = {
       game.physics.arcade.overlap(player.bulletGroup, this.enemyGroup, this.bulletHitEnemy, null, this);
 
       //check collisions with the player and enemies
-      game.physics.arcade.collide(player, this.enemyGroup);
+      game.physics.arcade.collide(player, this.enemyGroup);//, this.enemyHitPlayer);
+
+      //check collisions with the players
+      game.physics.arcade.collide(player, this.allPlayers);
     }, this);
+  },
+  render: function(){
+    //some nice debugging
+    //    game.debug.geom(new Phaser.Rectangle(this.player.body.x, this.player.body.y, this.player.body.width, this.player.body.height), 'rgba(255,0,0,1)' );
+    //    this.enemyGroup.forEach(function(enemy){
+    //      game.debug.spriteBounds(enemy);
+    //      game.debug.geom(new Phaser.Rectangle(enemy.body.x, enemy.body.y, enemy.body.width, enemy.body.height), 'rgba(255,0,0,1)' );
+    //    });
+  },
+  enemyHitPlayer: function(player, enemy){
+    //TODO: damage the player
+
   },
   bulletHitEnemy: function(bullet, enemy){
     bullet.kill();
@@ -195,6 +209,13 @@ GameState.prototype = {
 
       this.AddPlayer(newPlayer);
     }
+  },
+  PlayerShoot: function(packetData) {
+    this.allPlayers.forEach(function(player){
+      if(player.id === packetData.id){
+        player.net_Shoot(packetData.x, packetData.y);
+      }
+    });
   }
 
 };

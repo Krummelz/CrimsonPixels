@@ -21,12 +21,12 @@ GameState.prototype.create = function () {
   game.stage.backgroundColor = "#eeeeee";
 
   //grass
-  game.add.tileSprite(0, 0, 2000, 2000, 'grass');
+  game.add.tileSprite(0, 0, 1000, 800, 'grass');
 
   //start the arcade physics system
   game.physics.startSystem(Phaser.Physics.ARCADE);
   //set game world bounds
-  game.world.setBounds(0, 0, 1400, 1400);
+  game.world.setBounds(0, 0, 1000, 800);
 
   this.enemyGroup = game.add.group();
   this.enemyGroup.enableBody = true;

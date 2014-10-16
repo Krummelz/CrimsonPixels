@@ -11,10 +11,14 @@ var Player = function (game, settings) {
   this.current = settings.current || undefined;
   this.ddlEncoding = document.getElementById("ddlEncoding");
 
-  this.body.bounce.setTo(1.5);
-  this.body.setSize(8, 8, 4, 4);
+  this.body.bounce.setTo(5);
+  this.body.acceleration = 2;
+  this.body.setSize(10, 10, 0, 0);
+  this.body.collideWorldBounds = true;
 
   this.game.add.existing(this);
+
+  this.health = 10; //built in - you can call Sprite.damage function too
 
   //some private vars
   this.fireRate = 100;
@@ -133,32 +137,32 @@ Player.prototype.PlayerShoot = function (packetData) {
     var bullet = this.bulletGroup.getFirstDead();
     bullet.reset(this.x, this.y);
 
-    if(packetData) {
-      //spawn a bullet that was fired by someone else
-      game.physics.arcade.moveToXY(bullet, packetData.x, packetData.y, 300);
-    }
-    else {
+//    if(packetData && packetData.msgType === _net.msgType.PlayerShoot) {
+//      //spawn a bullet that was fired by someone else
+//      game.physics.arcade.moveToXY(bullet, packetData.x, packetData.y, 300);
+//    }
+//    else {
       //sync shoots over the network
       var targetX = game.input.activePointer.x,
           targetY = game.input.activePointer.y;
       var obj = {
+        id:this.id,
         x:targetX,
-        y:targetX,
+        y:targetY,
         msgType:_net.msgType.PlayerShoot
       };
       _net.send(obj, ddlEncoding.value);
 
       game.physics.arcade.moveToXY(bullet, targetX, targetY, 300);
-    }
+//    }
   }
 };
 
-//Player.prototype.net_Shoot = function(x, y){
-//  if (game.time.now > this.nextFire && this.bulletGroup.countDead() > 0) {
-//    this.nextFire = game.time.now + this.fireRate;
-//    var bullet = this.bulletGroup.getFirstDead();
-//    bullet.reset(this.x, this.y);
-//    game.physics.arcade.moveToXY(bullet, x, y, 300);
-//  }
-//};
-
+Player.prototype.net_Shoot = function(x, y){
+  if (game.time.now > this.nextFire && this.bulletGroup.countDead() > 0) {
+    this.nextFire = game.time.now + this.fireRate;
+    var bullet = this.bulletGroup.getFirstDead();
+    bullet.reset(this.x, this.y);
+    game.physics.arcade.moveToXY(bullet, x, y, 300);
+  }
+};
