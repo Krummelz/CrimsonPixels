@@ -9,6 +9,7 @@ Phaser.sublime-workspace
 *.suo
 *.sublime-project
 *.sublime-workspace
+*.log
 
 # Vendors
 node_modules/
@@ -17,3 +18,4 @@ node_modules/
 dist/
 deploy/
 build/
+cache/
